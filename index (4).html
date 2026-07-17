@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K7 AI Solutions — AI Reception for Local Clinics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #10231d;
+    --ink-soft: #2c3d36;
+    --paper: #f2f2ec;
+    --paper-raised: #ffffff;
+    --teal: #1f5c4e;
+    --teal-deep: #123f35;
+    --amber: #e6a53c;
+    --line: rgba(16,35,29,0.12);
+    --shadow: 0 1px 2px rgba(16,35,29,0.06), 0 8px 24px rgba(16,35,29,0.08);
+  }
+
+  *{margin:0; padding:0; box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    perspective:1400px;
+    position:relative;
+    overflow-x:clip;
+  }
+
+  /* ambient background blobs */
+  .bg-blob{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:0.35;
+    z-index:0;
+    pointer-events:none;
+  }
+  .bg-blob.b1{ width:520px; height:520px; top:-180px; right:-140px; background:radial-gradient(circle, var(--teal) 0%, transparent 70%); }
+  .bg-blob.b2{ width:460px; height:460px; top:520px; left:-200px; background:radial-gradient(circle, var(--amber) 0%, transparent 70%); opacity:0.22; }
+  .bg-blob.b3{ width:600px; height:600px; bottom:-260px; right:-220px; background:radial-gradient(circle, var(--teal) 0%, transparent 70%); opacity:0.18; }
+
+  .grain{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    opacity:0.045; mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  header, main, footer{ position:relative; z-index:2; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  a{color:inherit;}
+  img{max-width:100%; display:block;}
+
+  .wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    color:var(--ink);
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--teal);
+    font-weight:500;
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(242,242,236,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+    max-width:1120px; margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    text-decoration:none;
+  }
+  .logo-mark{
+    width:32px; height:32px;
+    border-radius:8px;
+    background:linear-gradient(135deg, #1f5c4e 0%, #0d2b23 100%);
+    display:flex; align-items:center; justify-content:center;
+    color:#f2f2ec;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    font-weight:500;
+    box-shadow:0 4px 10px rgba(18,63,53,0.3);
+  }
+  .nav-links{
+    display:flex; align-items:center; gap:32px;
+    font-size:14.5px; font-weight:500;
+  }
+  .nav-links a{text-decoration:none; color:var(--ink-soft); transition:color .15s;}
+  .nav-links a:hover{color:var(--teal);}
+  .nav-cta{
+    background:var(--teal-deep); color:#f2f2ec !important;
+    padding:9px 18px; border-radius:100px;
+    font-size:14px; font-weight:600;
+    text-decoration:none;
+  }
+  .nav-mobile-hide{display:flex;}
+  @media (max-width:760px){
+    .nav-mobile-hide{display:none;}
+  }
+
+  /* ===== HERO ===== */
+  .hero{
+    padding:80px 0 60px;
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    gap:56px;
+    align-items:center;
+  }
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr; padding:48px 0 40px;}
+  }
+  .hero-eyebrow{margin-bottom:18px;}
+  .hero h1{
+    font-size:clamp(34px, 5vw, 54px);
+    line-height:1.06;
+    margin-bottom:22px;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--teal);
+  }
+  .hero p.lede{
+    font-size:17.5px;
+    color:var(--ink-soft);
+    max-width:480px;
+    margin-bottom:32px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:13px 24px;
+    border-radius:100px;
+    font-size:15px; font-weight:600;
+    text-decoration:none;
+    border:1px solid transparent;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{
+    background:linear-gradient(135deg, #1f5c4e 0%, #123f35 100%);
+    color:#f2f2ec;
+    box-shadow:0 1px 2px rgba(16,35,29,0.1), 0 12px 28px rgba(18,63,53,0.28);
+  }
+  .btn-primary:hover{ box-shadow:0 1px 2px rgba(16,35,29,0.1), 0 16px 36px rgba(18,63,53,0.36); }
+  .btn-ghost{background:var(--paper-raised); color:var(--ink); border-color:var(--line); box-shadow:var(--shadow);}
+  .btn-ghost:hover{border-color:var(--teal);}
+
+  /* signature phone mock */
+  .phone-stage{
+    position:relative;
+    display:flex; justify-content:center;
+    padding:20px 0;
+  }
+  .phone-glow{
+    position:absolute;
+    width:380px; height:380px;
+    background:radial-gradient(circle, rgba(31,92,78,0.28) 0%, transparent 68%);
+    filter:blur(10px);
+    z-index:0;
+  }
+  .phone{
+    position:relative;
+    z-index:1;
+    background:linear-gradient(180deg, #ffffff 0%, #fbfbf8 100%);
+    border:1px solid var(--line);
+    border-radius:28px;
+    box-shadow:0 2px 4px rgba(16,35,29,0.06), 0 30px 60px -12px rgba(16,35,29,0.28);
+    padding:20px;
+    width:100%;
+    max-width:320px;
+  }
+  .float-badge{
+    position:absolute;
+    z-index:2;
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 14px;
+    box-shadow:0 12px 28px rgba(16,35,29,0.14);
+    font-size:12.5px;
+    font-weight:600;
+  }
+  .float-badge .fb-icon{font-size:16px;}
+  .float-badge .fb-sub{display:block; font-size:10.5px; font-weight:500; color:var(--ink-soft); font-family:'JetBrains Mono', monospace;}
+  .float-badge.fb-1{ top:6px; left:-18px; animation:float1 5.5s ease-in-out infinite; }
+  .float-badge.fb-2{ bottom:38px; right:-24px; animation:float2 6.5s ease-in-out infinite; }
+  @keyframes float1{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+  @keyframes float2{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(10px);} }
+  @media (max-width:520px){
+    .float-badge{display:none;}
+  }
+  .phone-head{
+    display:flex; align-items:center; gap:10px;
+    padding:6px 8px 14px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+  }
+  .phone-dot{width:9px; height:9px; border-radius:50%; background:#4caf7d;}
+  .phone-title{font-size:13px; font-weight:600;}
+  .phone-sub{font-size:11.5px; color:var(--ink-soft); font-family:'JetBrains Mono', monospace;}
+  .phone-body{min-height:280px; display:flex; flex-direction:column; gap:10px; justify-content:flex-end;}
+  .bubble{
+    padding:10px 14px;
+    border-radius:16px;
+    font-size:13.5px;
+    max-width:82%;
+    opacity:0;
+    transform:translateY(6px);
+    animation:pop .4s ease forwards;
+  }
+  .bubble.patient{
+    align-self:flex-end;
+    background:var(--amber);
+    color:#1e1608;
+    border-bottom-right-radius:5px;
+  }
+  .bubble.bot{
+    align-self:flex-start;
+    background:#eef1ee;
+    color:var(--ink);
+    border-bottom-left-radius:5px;
+  }
+  @keyframes pop{ to{opacity:1; transform:translateY(0);} }
+  .b1{animation-delay:.3s;}
+  .b2{animation-delay:1.3s;}
+  .b3{animation-delay:2.5s;}
+  .b4{animation-delay:3.5s;}
+  .phone-typing{
+    align-self:flex-start;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono', monospace;
+    opacity:0;
+    animation:pop .3s ease forwards;
+    animation-delay:2.1s;
+  }
+
+  /* ===== SECTION SHARED ===== */
+  section{padding:72px 0;}
+  .section-head{max-width:620px; margin-bottom:44px;}
+  .section-head h2{font-size:clamp(26px, 3.4vw, 36px); margin-top:12px;}
+  .section-head p{color:var(--ink-soft); font-size:16px; margin-top:14px;}
+
+  /* ===== 3D SCROLL REVEAL ===== */
+  .reveal-scope{ perspective:1200px; }
+  .reveal{
+    opacity:0;
+    transform:translateY(46px) rotateX(14deg) scale(.96);
+    transform-origin:50% 100%;
+    transition:opacity .9s cubic-bezier(.16,.8,.3,1), transform .9s cubic-bezier(.16,.8,.3,1);
+    will-change:transform, opacity;
+  }
+  .reveal.in-view{
+    opacity:1;
+    transform:translateY(0) rotateX(0deg) scale(1);
+  }
+  .reveal-stagger.in-view{transition-delay:var(--d, 0s);}
+
+  /* subtle continuous 3D tilt on hover for cards */
+  .tilt-card{
+    transition:transform .35s cubic-bezier(.16,.8,.3,1), box-shadow .35s ease;
+    transform-style:preserve-3d;
+  }
+  .tilt-card:hover{
+    transform:translateY(-6px) rotateX(3deg) rotateY(-3deg);
+    box-shadow:0 20px 40px rgba(16,35,29,0.14);
+  }
+
+  /* parallax layer for hero phone */
+  .parallax-layer{
+    transition:transform .1s linear;
+    transform-style:preserve-3d;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal{opacity:1; transform:none; transition:none;}
+    .tilt-card:hover{transform:none;}
+    .parallax-layer{transform:none !important;}
+  }
+
+  /* ===== STATS STRIP ===== */
+  .stats-strip{
+    display:flex; flex-wrap:wrap; gap:0;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    margin-bottom:8px;
+  }
+  .stat-item{
+    flex:1 1 200px;
+    padding:20px 24px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    border-right:1px solid var(--line);
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .stat-item:last-child{border-right:none;}
+  .stat-num{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--teal-deep);
+  }
+  @media (max-width:700px){
+    .stat-item{flex:1 1 50%; border-bottom:1px solid var(--line);}
+  }
+
+  /* ===== PROBLEM ===== */
+  .problem{background:var(--paper-raised); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+  .problem-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  @media (max-width:760px){.problem-grid{grid-template-columns:1fr;}}
+  .problem-card{background:var(--paper-raised); padding:32px 28px;}
+  .problem-card .mark{font-family:'JetBrains Mono', monospace; color:var(--amber); font-size:13px; margin-bottom:14px; display:block;}
+  .problem-card h3{font-size:19px; margin-bottom:10px; font-weight:600;}
+  .problem-card p{font-size:14.5px; color:var(--ink-soft);}
+
+  /* ===== SERVICES ===== */
+  .services-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  @media (max-width:760px){.services-grid{grid-template-columns:1fr;}}
+  .service-card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:32px;
+    position:relative;
+  }
+  .service-card .tag{
+    position:absolute; top:28px; right:28px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:0.04em;
+    padding:4px 10px; border-radius:100px;
+    background:#eaf3ef; color:var(--teal-deep);
+  }
+  .service-card .tag.soon{background:#fbeed9; color:#8a5a13;}
+  .service-icon{
+    width:44px; height:44px; border-radius:12px;
+    background:linear-gradient(135deg, #1f5c4e 0%, #0d2b23 100%);
+    color:#f2f2ec;
+    display:flex; align-items:center; justify-content:center;
+    font-size:19px; margin-bottom:20px;
+    box-shadow:0 8px 20px rgba(18,63,53,0.28);
+  }
+  .service-card h3{font-size:21px; margin-bottom:10px;}
+  .service-card p{color:var(--ink-soft); font-size:14.5px; margin-bottom:18px;}
+  .service-list{list-style:none; font-size:14px; color:var(--ink-soft);}
+  .service-list li{padding-left:20px; position:relative; margin-bottom:8px;}
+  .service-list li::before{content:"—"; position:absolute; left:0; color:var(--teal);}
+  .service-demo-link{
+    display:inline-flex; align-items:center; gap:6px;
+    margin-top:18px; font-size:14px; font-weight:600; color:var(--teal-deep);
+    text-decoration:none; border-bottom:1px solid var(--teal-deep); padding-bottom:2px;
+  }
+
+  /* ===== HOW IT WORKS ===== */
+  .how{
+    background:
+      radial-gradient(circle at 85% 20%, rgba(230,165,60,0.1) 0%, transparent 40%),
+      radial-gradient(circle at 10% 90%, rgba(31,92,78,0.4) 0%, transparent 45%),
+      var(--ink);
+    color:var(--paper);
+  }
+  .how .section-head p{color:rgba(242,242,236,0.7);}
+  .how .eyebrow{color:var(--amber);}
+  .how h2{color:var(--paper);}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
+  @media (max-width:760px){.steps{grid-template-columns:1fr;}}
+  .step .num{
+    font-family:'Fraunces', serif; font-size:15px; font-weight:600;
+    color:var(--amber); margin-bottom:16px;
+    font-variant-numeric:tabular-nums;
+  }
+  .step h3{color:var(--paper); font-size:19px; margin-bottom:10px;}
+  .step p{color:rgba(242,242,236,0.65); font-size:14.5px;}
+
+  /* ===== WHY ===== */
+  .why-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:28px;}
+  @media (max-width:900px){.why-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:520px){.why-grid{grid-template-columns:1fr;}}
+  .why-item h3{font-size:16.5px; margin-bottom:8px; font-weight:600;}
+  .why-item p{font-size:14px; color:var(--ink-soft);}
+  .why-item .dot{width:8px; height:8px; border-radius:50%; background:var(--teal); margin-bottom:14px;}
+
+  /* ===== CONTACT ===== */
+  .contact{background:var(--paper-raised); border-top:1px solid var(--line);}
+  .contact-panel{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(230,165,60,0.16) 0%, transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(31,92,78,0.5) 0%, transparent 50%),
+      linear-gradient(135deg, #123f35 0%, #0d2b23 100%);
+    border-radius:24px;
+    padding:56px 48px;
+    color:#f2f2ec;
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:40px;
+    align-items:center;
+    box-shadow:0 30px 60px -20px rgba(13,43,35,0.5);
+  }
+  @media (max-width:800px){.contact-panel{grid-template-columns:1fr; padding:40px 28px;}}
+  .contact-panel h2{color:#f2f2ec; font-size:clamp(26px,3.2vw,34px); margin-bottom:14px;}
+  .contact-panel p{color:rgba(242,242,236,0.72); font-size:15.5px; max-width:420px;}
+  .contact-methods{display:flex; flex-direction:column; gap:12px;}
+  .contact-method{
+    display:flex; align-items:center; gap:14px;
+    background:rgba(242,242,236,0.06);
+    border:1px solid rgba(242,242,236,0.16);
+    border-radius:14px;
+    padding:14px 18px;
+    text-decoration:none;
+    color:#f2f2ec;
+    transition:background .15s;
+  }
+  .contact-method:hover{background:rgba(242,242,236,0.12);}
+  .contact-method .ci{
+    width:36px; height:36px; border-radius:10px;
+    background:rgba(242,242,236,0.12);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+  .contact-method .cl{font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(242,242,236,0.55); font-family:'JetBrains Mono', monospace;}
+  .contact-method .cv{font-size:15px; font-weight:600;}
+
+  /* ===== FOOTER ===== */
+  footer{padding:36px 0; border-top:1px solid var(--line);}
+  .footer-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;}
+  .footer-row p{font-size:13px; color:var(--ink-soft);}
+  .footer-logo{font-family:'Fraunces', serif; font-weight:600; font-size:15px;}
+</style>
+</head>
+<body>
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+<div class="grain"></div>
+
+<header>
+  <div class="nav">
+    <a href="#top" class="logo">
+      <span class="logo-mark">K7</span>
+      K7 AI Solutions
+    </a>
+    <nav class="nav-links nav-mobile-hide">
+      <a href="#services">Services</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">Live demo</a>
+      <a href="#contact" class="nav-cta">Talk to us</a>
+    </nav>
+    <a href="https://wa.me/919111718881" class="nav-cta" style="display:none" id="mobile-cta">WhatsApp</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero wrap">
+    <div>
+      <div class="eyebrow hero-eyebrow">AI RECEPTION FOR LOCAL CLINICS</div>
+      <h1>Your front desk, <em>awake</em> at 11pm too.</h1>
+      <p class="lede">K7 AI Solutions builds AI chat and voice assistants that answer patient questions, book appointments, and follow up on leads — so your clinic never loses a patient to a missed call again.</p>
+      <div class="hero-ctas">
+        <a href="#demo" class="btn btn-primary">See live demo →</a>
+        <a href="https://wa.me/919111718881" class="btn btn-ghost">Chat on WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="phone-stage">
+      <div class="phone-glow"></div>
+      <div class="float-badge fb-1">
+        <span class="fb-icon">⚡</span>
+        <span>Instant reply<span class="fb-sub">&lt; 2 sec</span></span>
+      </div>
+      <div class="phone parallax-layer" id="hero-phone">
+        <div class="phone-head">
+          <div class="phone-dot"></div>
+          <div>
+            <div class="phone-title">DentAI Assistant</div>
+            <div class="phone-sub">Bright Smiles Dental Clinic</div>
+          </div>
+        </div>
+        <div class="phone-body">
+          <div class="bubble patient b1">Do you have a slot tomorrow for a cleaning?</div>
+          <div class="phone-typing">DentAI is typing…</div>
+          <div class="bubble bot b2">Yes! We have openings at 10:30am and 4pm tomorrow. Which works for you?</div>
+          <div class="bubble patient b3">4pm please</div>
+          <div class="bubble bot b4">Booked ✓ You're confirmed for 4pm tomorrow. We'll send a reminder 1hr before.</div>
+        </div>
+      </div>
+      <div class="float-badge fb-2">
+        <span class="fb-icon">🌙</span>
+        <span>Always on<span class="fb-sub">24/7 · Hindi &amp; English</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS STRIP -->
+  <div class="wrap">
+    <div class="stats-strip reveal">
+      <div class="stat-item"><span class="stat-num">2</span>channels — chat &amp; WhatsApp</div>
+      <div class="stat-item"><span class="stat-num">&lt;1</span>week to launch</div>
+      <div class="stat-item"><span class="stat-num">2</span>languages, mid-chat switch</div>
+      <div class="stat-item"><span class="stat-num">24/7</span>always answering</div>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <section class="problem">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow">THE PROBLEM</div>
+        <h2>Every unanswered call is a patient choosing someone else.</h2>
+      </div>
+      <div class="problem-grid">
+        <div class="problem-card reveal reveal-stagger tilt-card" style="--d:0.0s">
+          <span class="mark">01</span>
+          <h3>Calls come in after hours</h3>
+          <p>Your front desk closes. Patient inquiries and booking requests don't — they just go to a clinic that answers.</p>
+        </div>
+        <div class="problem-card reveal reveal-stagger tilt-card" style="--d:0.12s">
+          <span class="mark">02</span>
+          <h3>Staff can't answer instantly</h3>
+          <p>Between chairside work and the front desk, WhatsApp and phone inquiries sit unanswered for hours.</p>
+        </div>
+        <div class="problem-card reveal reveal-stagger tilt-card" style="--d:0.24s">
+          <span class="mark">03</span>
+          <h3>Follow-ups get forgotten</h3>
+          <p>Leads who ask about pricing or procedures rarely get a second message — and rarely book on their own.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">WHAT WE BUILD</div>
+      <h2>Two ways to never miss a patient.</h2>
+      <p>Built specifically for Indian clinics — WhatsApp-first, fast to set up, and priced for a single-location practice.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal reveal-stagger tilt-card" style="--d:0.0s">
+        <span class="tag">Live</span>
+        <div class="service-icon">💬</div>
+        <h3>AI Chat Assistant</h3>
+        <p>A 24/7 assistant on your website and WhatsApp that answers patient questions and books appointments in real time.</p>
+        <ul class="service-list">
+          <li>Answers pricing, hours & procedure questions</li>
+          <li>Books and confirms appointments</li>
+          <li>Escalates emergencies to your number directly</li>
+        </ul>
+        <a href="https://k7-ai-solutions.github.io/dental-bot" target="_blank" class="service-demo-link">Try the live demo →</a>
+      </div>
+      <div class="service-card reveal reveal-stagger tilt-card" style="--d:0.12s">
+        <span class="tag soon">Rolling out</span>
+        <div class="service-icon">📞</div>
+        <h3>AI Voice Reception</h3>
+        <p>An AI receptionist that actually picks up the phone — handles calls, checks your calendar, and books the slot while you're with a patient.</p>
+        <ul class="service-list">
+          <li>Answers inbound calls in a natural voice</li>
+          <li>Checks live availability before confirming</li>
+          <li>Texts the patient a confirmation after the call</li>
+        </ul>
+        <a href="#contact" class="service-demo-link">Ask about early access →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE DEMO -->
+  <section id="demo" class="wrap" style="padding-top:0;">
+    <div style="background:var(--paper-raised); border:1px solid var(--line); border-radius:20px; padding:44px; display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap;">
+      <div style="max-width:520px;">
+        <div class="eyebrow">SEE IT WORKING</div>
+        <h2 style="font-size:24px; margin-top:10px; margin-bottom:10px;">Talk to DentAI right now — it's a real, working assistant.</h2>
+        <p style="color:var(--ink-soft); font-size:14.5px;">This is the exact assistant we'd set up for your clinic, pre-loaded with a sample dental practice. Ask it about pricing, hours, or try booking a slot.</p>
+      </div>
+      <a href="https://k7-ai-solutions.github.io/dental-bot" target="_blank" class="btn btn-primary">Open live demo →</a>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" class="how">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="eyebrow">HOW IT WORKS</div>
+        <h2>Live in a week, not a quarter.</h2>
+        <p>No new hardware, no long contracts — we set it up around your existing number and website.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal reveal-stagger tilt-card" style="--d:0.0s">
+          <div class="num">01</div>
+          <h3>We learn your clinic</h3>
+          <p>Hours, pricing, procedures, doctor availability — we load it into your assistant's knowledge base.</p>
+        </div>
+        <div class="step reveal reveal-stagger tilt-card" style="--d:0.12s">
+          <div class="num">02</div>
+          <h3>We connect your channels</h3>
+          <p>WhatsApp, website chat, and eventually your phone line — all pointed at one assistant.</p>
+        </div>
+        <div class="step reveal reveal-stagger tilt-card" style="--d:0.24s">
+          <div class="num">03</div>
+          <h3>You start getting bookings</h3>
+          <p>Patients get answered instantly, day or night. You get a daily summary of new leads and bookings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">WHY K7 AI</div>
+      <h2>Built local. Priced for one clinic, not a hospital chain.</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-item reveal reveal-stagger tilt-card" style="--d:0.0s">
+        <div class="dot"></div>
+        <h3>Fast setup</h3>
+        <p>Live in days, not months — no long IT project, no waiting on a dev team.</p>
+      </div>
+      <div class="why-item reveal reveal-stagger tilt-card" style="--d:0.12s">
+        <div class="dot"></div>
+        <h3>Bilingual ready</h3>
+        <p>Handles both Hindi and English patient queries, switching naturally mid-conversation.</p>
+      </div>
+      <div class="why-item reveal reveal-stagger tilt-card" style="--d:0.24s">
+        <div class="dot"></div>
+        <h3>No lock-in</h3>
+        <p>Month-to-month. If it's not saving you missed patients, you can walk away anytime.</p>
+      </div>
+      <div class="why-item reveal reveal-stagger tilt-card" style="--d:0.36s">
+        <div class="dot"></div>
+        <h3>You own the data</h3>
+        <p>Every conversation and lead is yours — exportable, visible, never locked behind our dashboard.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <div class="contact-panel reveal">
+        <div>
+          <div class="eyebrow" style="color:var(--amber);">GET STARTED</div>
+          <h2>Let's set up your clinic's assistant.</h2>
+          <p>Tell us about your clinic and we'll have a working demo ready within a few days — no cost to see it first.</p>
+        </div>
+        <div class="contact-methods">
+          <a href="https://wa.me/919111718881" class="contact-method">
+            <div class="ci">💬</div>
+            <div><div class="cl">WhatsApp</div><div class="cv">+91 91117 18881</div></div>
+          </a>
+          <a href="tel:+919111718881" class="contact-method">
+            <div class="ci">📞</div>
+            <div><div class="cl">Call</div><div class="cv">+91 91117 18881</div></div>
+          </a>
+          <a href="mailto:ykushal.0703@gmail.com" class="contact-method">
+            <div class="ci">✉️</div>
+            <div><div class="cl">Email</div><div class="cv">ykushal.0703@gmail.com</div></div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div class="footer-logo">K7 AI Solutions</div>
+    <p>Indore, India · AI reception for local businesses</p>
+    <p>© 2026 K7 AI Solutions</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Scroll-triggered 3D reveal
+  if(!reduceMotion && 'IntersectionObserver' in window){
+    var revealEls = document.querySelectorAll('.reveal');
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.18, rootMargin: '0px 0px -60px 0px' });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in-view'); });
+  }
+
+  // Hero phone: pointer-based 3D tilt + gentle scroll-linked rotation
+  var phone = document.getElementById('hero-phone');
+  if(phone && !reduceMotion){
+    var scrollTilt = 0;
+
+    function applyTransform(px, py){
+      phone.style.transform =
+        'rotateX(' + (py + scrollTilt) + 'deg) rotateY(' + px + 'deg)';
+    }
+
+    document.addEventListener('mousemove', function(e){
+      var rect = phone.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      var cy = rect.top + rect.height / 2;
+      var dx = (e.clientX - cx) / rect.width;
+      var dy = (e.clientY - cy) / rect.height;
+      var px = Math.max(-8, Math.min(8, dx * 12));
+      var py = Math.max(-6, Math.min(6, -dy * 10));
+      applyTransform(px, py);
+    });
+
+    window.addEventListener('scroll', function(){
+      var progress = Math.max(0, Math.min(1, window.scrollY / 700));
+      scrollTilt = progress * -6;
+      applyTransform(0, 0);
+    }, { passive: true });
+  }
+})();
+</script>
+
+</body>
+</html>
