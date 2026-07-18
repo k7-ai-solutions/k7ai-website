@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://k7-ai-solutions.github.io/k7ai-website/sitemap.xml
